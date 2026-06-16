@@ -62,42 +62,6 @@
   .status{ margin:6px 0 4px; font-family:'Fraunces',Georgia,serif; font-size:1.18rem; font-weight:500; color:var(--ink); min-height:1.4em; }
   .status b{ color:inherit; font-weight:600; }
   .livenote{ margin:0 0 2px; font-size:.78rem; color:#9A8E73; letter-spacing:.02em; }
-  .livedot{ display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--sage-deep); margin-right:5px; vertical-align:middle; }
-  @media (prefers-reduced-motion: no-preference){ .livedot{ animation:pulse 2.4s ease-in-out infinite; } @keyframes pulse{ 0%,100%{opacity:.35;} 50%{opacity:1;} } }
-
-  /* clean, simple buttons */
-  .btn-soft{ appearance:none; border:none; background:var(--orange); color:#FFF8EC;
-    font-family:'Nunito',sans-serif; font-weight:700; font-size:.92rem; padding:10px 18px; border-radius:10px;
-    cursor:pointer; transition:background .2s ease, transform .1s ease; }
-  .btn-soft:hover{ background:var(--orange-deep); }
-  .btn-soft:active{ transform:scale(.98); }
-  .btn-soft:focus-visible{ outline:2px solid var(--ink); outline-offset:2px; }
-
-  .settings{ margin:0; max-width:330px; text-align:left; font-size:.85rem; display:none; }
-  .fac-toggle-wrap{ margin:14px 0 0; }
-  .fac-toggle{ background:none; border:none; padding:0; font-family:inherit; font-size:.78rem; font-weight:700; color:var(--ink-soft); opacity:.5; cursor:pointer; letter-spacing:.01em; }
-  .fac-toggle:hover{ opacity:.8; }
-  #facpanel{ display:none; margin-bottom:26px; }
-
-  /* when the facilitator opens the panel on a wide screen, place it to the right so all is visible */
-  @media (min-width:820px){
-    #app.fac-open{ display:flex; flex-direction:row; align-items:center; justify-content:center; gap:30px; max-width:980px; }
-    #app.fac-open .screen{ flex:0 1 540px; }
-    #app.fac-open #facpanel{ flex:0 0 330px; margin:0; align-self:center; display:block !important; }
-    #app.fac-open .fac-toggle-wrap{ display:none; }
-  }
-  .settings-body{ background:rgba(22,58,43,.05); border:1px solid rgba(22,58,43,.14); border-radius:14px; padding:20px; display:flex; flex-direction:column; gap:22px; }
-  .fac-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
-  .fac-row input{ width:84px; padding:7px 9px; border:1px solid var(--ink-soft); border-radius:9px; font-family:inherit; font-size:.92rem; text-align:center; background:#FFFDF6; color:var(--ink); }
-  .fac-group{ display:flex; flex-direction:column; gap:7px; }
-  .fac-hint{ font-size:.76rem; color:var(--ink-soft); opacity:.8; margin:0; }
-  .codemsg{ font-size:.78rem; font-weight:700; }
-  .codemsg.err{ color:var(--orange-deep); }
-  .fac-actions{ display:flex; gap:8px; align-items:center; }
-  .divider{ height:1px; background:rgba(22,58,43,.12); margin:8px 0; border:none; }
-  .reset{ align-self:flex-start; background:none; border:1px solid var(--orange); color:var(--orange-deep); border-radius:999px; padding:6px 14px; font-family:inherit; font-weight:700; font-size:.8rem; cursor:pointer; }
-  .reset:hover{ background:rgba(232,130,30,.08); }
-  .resetconfirm{ font-size:.78rem; color:var(--orange-deep); font-weight:700; }
 </style>
 </head>
 <body>
@@ -114,47 +78,7 @@
     </main>
 
     <p id="status" class="status">&nbsp;</p>
-    <p class="livenote"><span class="livedot" aria-hidden="true"></span>Updating live as submissions come in.</p>
-  </div>
-
-  <p class="fac-toggle-wrap" id="facbtnwrap" style="display:none"><button id="facbtn" class="fac-toggle" type="button">Facilitator controls</button></p>
-
-  <div class="settings" id="facpanel">
-    <div class="settings-body">
-      <div id="lockbox">
-        <div class="fac-row"><span id="codelabel">Enter facilitator password</span>
-          <input id="code" type="password" autocomplete="off" />
-        </div>
-        <div class="fac-actions">
-          <button id="unlock" class="btn-soft" type="button">Unlock</button>
-          <span id="codemsg" class="codemsg"></span>
-        </div>
-        <p id="codehint" class="fac-hint"></p>
-      </div>
-
-      <div id="controls" hidden>
-        <div class="fac-group">
-          <div class="fac-row"><span>Total forms submitted</span>
-            <input id="total" type="number" min="0" max="9999" inputmode="numeric" />
-          </div>
-          <p class="fac-hint">Set this to match your form's response count &mdash; the tree updates for everyone.</p>
-        </div>
-        <div class="fac-actions">
-          <button id="plus" class="btn-soft" type="button">+1 submission</button>
-        </div>
-        <hr class="divider">
-        <div class="fac-row"><span>Forms for a full tree</span>
-          <input id="goal" type="number" min="1" max="999" inputmode="numeric" />
-        </div>
-        <div class="fac-actions">
-          <button id="reset" class="reset" type="button">Reset the tree</button>
-          <span id="resetconfirm" class="resetconfirm" hidden>Tap again to confirm</span>
-        </div>
-        <div class="fac-actions" style="margin-top:2px">
-          <button id="changepass" class="reset" type="button">Change password</button>
-        </div>
-      </div>
-    </div>
+    <p class="livenote">Refresh to see the latest form count.</p>
   </div>
 </div>
 
@@ -162,19 +86,9 @@
 (function(){
   "use strict";
 
-  var SHARED_KEY = "garden:state";
-  var PASS_KEY   = "garden:pass";     // hashed facilitator password (shared)
-  var UNLOCK_KEY = "garden:unlocked"; // this device remembered as facilitator
-  var DEFAULT_GOAL = 30;
-
-  async function hashStr(s){
-    try{ if(window.crypto && crypto.subtle){ var buf=await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)); return Array.prototype.map.call(new Uint8Array(buf), function(b){ return ('0'+b.toString(16)).slice(-2); }).join(''); } }catch(e){}
-    var h1=0xdeadbeef, h2=0x41c6ce57;
-    for(var i=0;i<s.length;i++){ var ch=s.charCodeAt(i); h1=Math.imul(h1^ch,2654435761); h2=Math.imul(h2^ch,1597334677); }
-    h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);
-    h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);
-    return (4294967296*(2097151&h2)+(h1>>>0)).toString(16);
-  }
+  // Edit these two numbers, then commit + push.
+  var COUNT = 0;   // total forms submitted so far
+  var GOAL  = 30;  // forms required for a full tree
 
   function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; var t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
   var rnd = mulberry32(20260610);
@@ -411,94 +325,6 @@
     }
   }
 
-  // ---- storage ----
-  var hasStore=!!(window.storage && window.storage.get);
-  var mem={count:0, goal:DEFAULT_GOAL};
-
-  async function loadShared(){
-    if(!hasStore) return {count:mem.count, goal:mem.goal};
-    try{ var res=await window.storage.get(SHARED_KEY, true); if(res&&res.value){ var v=JSON.parse(res.value); return {count:v.count||0, goal:v.goal||DEFAULT_GOAL}; } }catch(e){}
-    return {count:0, goal:DEFAULT_GOAL};
-  }
-  async function saveShared(s){ mem=s; if(!hasStore) return true; try{ await window.storage.set(SHARED_KEY, JSON.stringify(s), true); return true; }catch(e){ return false; } }
-
-  // ---- wiring ----
-  var current={count:0, goal:DEFAULT_GOAL};
-  var totalInput=document.getElementById("total");
-  var goalInput=document.getElementById("goal");
-
-  var pendingSave=null;
-
-  async function refresh(){
-    if(pendingSave) return;   // keep showing the optimistic value until it has saved
-    var s=await loadShared(); current=s;
-    if(document.activeElement!==totalInput) totalInput.value=s.count;
-    if(document.activeElement!==goalInput) goalInput.value=s.goal;
-    applyState(s.count, s.goal);
-  }
-
-  function persist(){
-    var snap={count:current.count, goal:current.goal};
-    pendingSave=snap;
-    saveShared(snap).then(function(){ if(pendingSave===snap) pendingSave=null; },
-                          function(){ if(pendingSave===snap) pendingSave=null; });
-  }
-  function setCount(n){
-    current.count=Math.max(0, Math.min(9999, n|0));
-    totalInput.value=current.count;
-    applyState(current.count, current.goal);  // update the tree immediately
-    persist();                                // save in the background
-  }
-
-  totalInput.addEventListener("change", function(){ setCount(parseInt(totalInput.value,10)||0); });
-  document.getElementById("plus").addEventListener("click", function(){ setCount(current.count+1); });
-  goalInput.addEventListener("change", function(){ current.goal=Math.max(1,Math.min(999,parseInt(goalInput.value,10)||DEFAULT_GOAL)); goalInput.value=current.goal; applyState(current.count,current.goal); persist(); });
-
-  var resetBtn=document.getElementById("reset"), resetConfirm=document.getElementById("resetconfirm"), armed=false, armT=null;
-  resetBtn.addEventListener("click", function(){
-    if(!armed){ armed=true; resetConfirm.hidden=false; armT=setTimeout(function(){armed=false; resetConfirm.hidden=true;},3500); return; }
-    clearTimeout(armT); armed=false; resetConfirm.hidden=true; setCount(0);
-  });
-
-  // facilitator gate — you set the password on first use; only a hash is stored
-  var lockbox=document.getElementById("lockbox"), controls=document.getElementById("controls");
-  var codeInput=document.getElementById("code"), codeMsg=document.getElementById("codemsg");
-  var codeLabel=document.getElementById("codelabel"), codeHint=document.getElementById("codehint");
-  var unlockBtn=document.getElementById("unlock");
-  var passHash=null, mode="enter";
-
-  function msg(t,cls){ codeMsg.textContent=t||""; codeMsg.className="codemsg"+(cls?(" "+cls):""); }
-  function showControls(){ lockbox.hidden=true; controls.hidden=false; }
-  function showLock(setMode, changeMode){
-    mode = changeMode ? "change-verify" : (setMode ? "set" : "enter");
-    controls.hidden=true; lockbox.hidden=false; codeInput.value=""; msg("");
-    if(setMode && !changeMode){ codeLabel.textContent="Create a password"; unlockBtn.textContent="Set password"; codeHint.textContent="Set this before you share the link \u2014 only you should know it."; }
-    else if(changeMode){ codeLabel.textContent="Enter your current password"; unlockBtn.textContent="Verify"; codeHint.textContent=""; }
-    else { codeLabel.textContent="Enter facilitator password"; unlockBtn.textContent="Unlock"; codeHint.textContent=""; }
-  }
-  async function loadPass(){ if(!hasStore) return null; try{ var r=await window.storage.get(PASS_KEY,true); if(r&&r.value) return r.value; }catch(e){} return null; }
-  function rememberDevice(){ if(hasStore){ try{ window.storage.set(UNLOCK_KEY,"1",false); }catch(e){} } }
-
-  async function onUnlock(){
-    var val=(codeInput.value||"").trim();
-    if(!val){ msg("Type a password.","err"); return; }
-    if(mode==="set" || !passHash){
-      passHash=await hashStr(val);
-      if(hasStore){ try{ await window.storage.set(PASS_KEY, passHash, true); }catch(e){} }
-      rememberDevice(); showControls();
-    } else if(mode==="change-verify"){
-      var h=await hashStr(val);
-      if(h===passHash){ mode="set"; codeLabel.textContent="Enter your new password"; unlockBtn.textContent="Set new password"; codeHint.textContent=""; codeInput.value=""; msg("Current password verified."); }
-      else { msg("Not quite \u2014 try again.","err"); }
-    } else {
-      var h=await hashStr(val);
-      if(h===passHash){ rememberDevice(); showControls(); } else { msg("Not quite \u2014 try again.","err"); }
-    }
-  }
-  unlockBtn.addEventListener("click", onUnlock);
-  codeInput.addEventListener("keydown", function(e){ if(e.key==="Enter") onUnlock(); });
-  document.getElementById("changepass").addEventListener("click", function(){ showLock(false, true); });
-
   // current day heading, refreshed daily (uses each viewer's local date)
   function updateDay(){
     var e=document.getElementById("eyebrow"); if(!e) return;
@@ -506,54 +332,10 @@
     catch(err){ e.textContent = new Date().toDateString(); }
   }
 
-  // init
   build();
   updateDay();
   setInterval(updateDay, 60000);
-
-  // facilitator button — reveals the panel (to the right on wide screens, below on mobile)
-  function openFacPanel(){
-    var fp=document.getElementById("facpanel"); if(!fp) return;
-    fp.style.display="block";
-    var ap=document.getElementById("app"); if(ap) ap.classList.add("fac-open");
-    var btn=document.getElementById("facbtn"); if(btn) btn.style.display="none";
-    try{ fp.scrollIntoView({behavior:"smooth",block:"nearest"}); }catch(e){}
-  }
-  var facBtn=document.getElementById("facbtn");
-  if(facBtn) facBtn.addEventListener("click", openFacPanel);
-
-  (async function(){
-    passHash = await loadPass();
-    var deviceOk=false;
-    if(hasStore){ try{ var u=await window.storage.get(UNLOCK_KEY,false); deviceOk=(u&&u.value==="1"); }catch(e){} }
-    var hashMatch = /facilitator|setup/i.test(location.hash||"");
-    var revealFac = hashMatch || deviceOk;
-    if(revealFac){
-      var wrap=document.getElementById("facbtnwrap"); if(wrap) wrap.style.display="";
-      openFacPanel();
-    }
-
-    // keyboard shortcut: press F three times quickly to reveal facilitator panel
-    var fCount=0, fTimer=null;
-    document.addEventListener("keydown", function(e){
-      if(e.key==="f"||e.key==="F"){
-        fCount++;
-        clearTimeout(fTimer);
-        fTimer=setTimeout(function(){ fCount=0; }, 600);
-        if(fCount>=3){
-          fCount=0;
-          var wrap=document.getElementById("facbtnwrap"); if(wrap) wrap.style.display="";
-          openFacPanel();
-        }
-      }
-    });
-    if(passHash && deviceOk){ showControls(); }
-    else if(passHash){ showLock(false); }
-    else { showLock(true); }
-    await refresh();
-    setTimeout(function(){ applyState(current.count,current.goal); }, 80);
-    setInterval(refresh, 7000);
-  })();
+  applyState(COUNT, GOAL);
 })();
 </script>
 </body>
