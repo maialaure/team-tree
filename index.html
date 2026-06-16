@@ -7,7 +7,7 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Nunito:wght@400;600;700&display=swap');
 
-  html,body{ margin:0; padding:0; background:#EAE0C8; }
+  html,body{ margin:0; padding:0; background:#EAE0C8; height:100%; }
   body{ display:flex; justify-content:center; }
   *{ box-sizing:border-box; }
 
@@ -21,22 +21,21 @@
 
   #app{
     max-width:560px; width:100%; min-height:100vh; min-height:100dvh;
-    display:flex; flex-direction:column; justify-content:center;
+    display:flex; flex-direction:column;
     font-family:'Nunito', ui-sans-serif, system-ui, -apple-system, sans-serif;
     color:var(--ink); text-align:center;
     background:radial-gradient(120% 80% at 50% 8%, #FBF4E2 0%, var(--cream) 55%, var(--cream-2) 100%);
   }
-  .screen{ display:flex; flex-direction:column; justify-content:center; padding:16px 18px 10px; }
+  .screen{ flex:1; display:flex; flex-direction:column; justify-content:center; padding:20px 18px 20px; }
   .screen > header, .screen > #status, .screen > .livenote{ flex:0 0 auto; }
 
-  .eyebrow{ margin:0 0 4px; font-size:.85rem; font-weight:700; letter-spacing:.22em; text-transform:uppercase; color:#B07D52; }
+  .eyebrow{ margin:0 0 4px; font-size:1.275rem; font-weight:700; letter-spacing:.22em; text-transform:uppercase; color:#B07D52; }
   .title{ margin:0; font-family:'Fraunces','Iowan Old Style','Palatino',Georgia,serif; font-weight:600;
-    font-size:clamp(1.5rem, 5.5vw, 2.1rem); line-height:1.05; color:var(--ink); }
-  .subtitle{ margin:8px auto 0; max-width:34ch; font-size:.95rem; color:var(--ink-soft); line-height:1.4; transition:color .4s ease; }
-  .subtitle.final{ font-family:'Fraunces','Iowan Old Style',Georgia,serif; font-weight:600; font-size:1.05rem; line-height:1.35; color:var(--ink); max-width:42ch; }
+    font-size:clamp(2.25rem, 8.25vw, 3.15rem); line-height:1.05; color:var(--ink); }
+  .subtitle{ margin:4px auto 0; max-width:34ch; font-size:1.425rem; color:var(--ink-soft); line-height:1.4; transition:color .4s ease; min-height:4.6rem; display:flex; align-items:center; justify-content:center; }
+  .subtitle.final{ font-family:'Fraunces','Iowan Old Style',Georgia,serif; font-weight:600; font-size:1.575rem; line-height:1.35; color:var(--ink); max-width:42ch; }
 
-  .stage{ flex:0 1 auto; min-height:0; height:min(58vh,380px); display:flex; align-items:center; justify-content:center; margin:10px 0 6px; }
-  @media(min-width:520px){ .stage{ height:min(62vh,440px); } }
+  .stage{ height:min(68vh,530px); flex:0 0 auto; display:flex; align-items:center; justify-content:center; margin:64px 0 2px; overflow:hidden; }
   #tree{ width:100%; height:100%; min-height:0; display:block; overflow:visible; }
 
   /* hidden -> shown */
@@ -62,9 +61,20 @@
   .shown.leaf-pop, .shown.deco, .shown.ray, .shown.blossom, .shown.sun-core, .shown.seedling{ transform:scale(1); opacity:1; }
   .shown.branch{ stroke-dashoffset:0; opacity:1; }
 
-  .status{ margin:6px 0 4px; font-family:'Fraunces',Georgia,serif; font-size:1.18rem; font-weight:500; color:var(--ink); min-height:1.4em; }
+  .status{ margin:4px 0 2px; font-family:'Fraunces',Georgia,serif; font-size:1.77rem; font-weight:500; color:var(--ink); min-height:1.4em; }
   .status b{ color:inherit; font-weight:600; }
-  .livenote{ margin:0 0 2px; font-size:.78rem; color:#9A8E73; letter-spacing:.02em; }
+  .livenote{ margin:0 0 2px; font-size:1.275rem; color:var(--ink); font-weight:400; letter-spacing:.02em; }
+
+  @media (max-width: 520px) {
+    .screen{ padding:12px 18px 12px; }
+    .eyebrow{ font-size:.85rem; }
+    .title{ font-size:clamp(1.8rem, 6vw, 2.4rem); }
+    .subtitle{ font-size:.95rem; min-height:4rem; }
+    .subtitle.final{ font-size:1.05rem; }
+    .status{ font-size:1.18rem; }
+    .livenote{ font-size:.85rem; }
+    .stage{ height:min(63vh,460px); margin-top:4px; }
+  }
 </style>
 </head>
 <body>
@@ -77,11 +87,11 @@
     </header>
 
     <main class="stage" aria-live="polite">
-      <svg id="tree" viewBox="-20 80 640 490" preserveAspectRatio="xMidYMax meet" role="img" aria-label="A growing tree showing the team's collective progress"></svg>
+      <svg id="tree" viewBox="40 30 520 555" preserveAspectRatio="xMidYMax meet" role="img" aria-label="A growing tree showing the team's collective progress"></svg>
     </main>
 
     <p id="status" class="status">&nbsp;</p>
-    <p class="livenote">Refresh to see the latest form count.</p>
+    <p class="livenote">Refresh your browser to see the latest count.</p>
   </div>
 </div>
 
@@ -90,7 +100,7 @@
   "use strict";
 
   // Edit these two numbers, then commit + push.
-  var COUNT = 20;   // total forms submitted so far
+  var COUNT = 35;   // total forms submitted so far
   var GOAL  = 35;  // forms required for a full tree
 
   function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; var t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
