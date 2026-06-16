@@ -317,7 +317,7 @@
     blossomEls.forEach(function(o,i){ o.node.classList.toggle("shown", i>=(blossomEls.length-nb)); });
 
     // size: small plant -> full tree by TREE_END, then steady while the sky fills in
-    var scale=0.6+0.4*Math.min(p/TREE_END,1);
+    var scale=0.25+0.75*Math.min(p/TREE_END,1);
     if(treeG){ treeG.style.transform="translate("+BASE_X+"px,"+BASE_Y+"px) scale("+scale.toFixed(3)+") translate("+(-BASE_X)+"px,"+(-BASE_Y)+"px)"; }
 
     var status=document.getElementById("status");
