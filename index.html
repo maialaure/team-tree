@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Our testing tree</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Nunito:wght@400;600;700&display=swap');
+
+  html,body{ margin:0; padding:0; background:#EAE0C8; }
+  body{ display:flex; justify-content:center; }
+  *{ box-sizing:border-box; }
+
+  :root{
+    --cream:#F5ECD6; --cream-2:#EFE3C6;
+    --ink:#163A2B; --ink-soft:#2C5341;
+    --sage:#A2C5A8; --sage-deep:#6FA17E;
+    --orange:#E8821E; --orange-soft:#F0A24A; --orange-deep:#D9761A;
+    --gold:#E0A53C;
+  }
+
+  #app{
+    max-width:560px; width:100%; min-height:100vh; min-height:100dvh;
+    display:flex; flex-direction:column; justify-content:center;
+    font-family:'Nunito', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    color:var(--ink); text-align:center;
+    background:radial-gradient(120% 80% at 50% 8%, #FBF4E2 0%, var(--cream) 55%, var(--cream-2) 100%);
+  }
+  .screen{ display:flex; flex-direction:column; justify-content:center; padding:16px 18px 10px; }
+  .screen > header, .screen > #status, .screen > .livenote{ flex:0 0 auto; }
+
+  .eyebrow{ margin:0 0 4px; font-size:.85rem; font-weight:700; letter-spacing:.22em; text-transform:uppercase; color:#B07D52; }
+  .title{ margin:0; font-family:'Fraunces','Iowan Old Style','Palatino',Georgia,serif; font-weight:600;
+    font-size:clamp(1.5rem, 5.5vw, 2.1rem); line-height:1.05; color:var(--ink); }
+  .subtitle{ margin:8px auto 0; max-width:34ch; font-size:.95rem; color:var(--ink-soft); line-height:1.4; transition:color .4s ease; }
+  .subtitle.final{ font-family:'Fraunces','Iowan Old Style',Georgia,serif; font-weight:600; font-size:1.05rem; line-height:1.35; color:var(--ink); max-width:42ch; }
+
+  .stage{ flex:0 1 auto; min-height:0; height:min(58vh,380px); display:flex; align-items:center; justify-content:center; margin:10px 0 6px; }
+  @media(min-width:520px){ .stage{ height:min(62vh,440px); } }
+  #tree{ width:100%; height:100%; min-height:0; display:block; overflow:visible; }
+
+  /* hidden -> shown */
+  .leaf-pop, .deco, .ray, .blossom, .sun-core, .seedling{
+    transform:scale(0); transform-box:fill-box; transform-origin:var(--ox,50%) var(--oy,100%); opacity:0;
+  }
+  .deco, .ray, .sun-core{ transform-box:view-box; }
+  .branch{ stroke-dasharray:var(--len); stroke-dashoffset:var(--len); opacity:0; }
+
+  @media (prefers-reduced-motion: no-preference){
+    .leaf-pop, .blossom, .seedling{ transition:transform .9s cubic-bezier(.22,.68,.32,1), opacity .7s ease; }
+    .deco, .sun-core{ transition:transform 1s cubic-bezier(.22,.68,.32,1), opacity .8s ease; }
+    .ray{ transition:transform .9s cubic-bezier(.22,.68,.32,1), opacity .7s ease; }
+    .branch{ transition:stroke-dashoffset 1s cubic-bezier(.32,.62,.3,1), opacity .5s ease; }
+    .tree-group{ transition:transform 1.15s cubic-bezier(.25,.6,.3,1); }
+    .sun-core{ transition:transform 1s ease, opacity .8s ease, r .9s ease; }
+    .canopy{ animation:sway 8s ease-in-out infinite; transform-origin:300px 500px; }
+    @keyframes sway{ 0%,100%{transform:rotate(-.45deg);} 50%{transform:rotate(.45deg);} }
+  }
+  .shown.leaf-pop, .shown.deco, .shown.ray, .shown.blossom, .shown.sun-core, .shown.seedling{ transform:scale(1); opacity:1; }
+  .shown.branch{ stroke-dashoffset:0; opacity:1; }
+
+  .status{ margin:6px 0 4px; font-family:'Fraunces',Georgia,serif; font-size:1.18rem; font-weight:500; color:var(--ink); min-height:1.4em; }
+  .status b{ color:inherit; font-weight:600; }
+  .livenote{ margin:0 0 2px; font-size:.78rem; color:#9A8E73; letter-spacing:.02em; }
+  .livedot{ display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--sage-deep); margin-right:5px; vertical-align:middle; }
+  @media (prefers-reduced-motion: no-preference){ .livedot{ animation:pulse 2.4s ease-in-out infinite; } @keyframes pulse{ 0%,100%{opacity:.35;} 50%{opacity:1;} } }
+
+  /* clean, simple buttons */
+  .btn-soft{ appearance:none; border:none; background:var(--orange); color:#FFF8EC;
+    font-family:'Nunito',sans-serif; font-weight:700; font-size:.92rem; padding:10px 18px; border-radius:10px;
+    cursor:pointer; transition:background .2s ease, transform .1s ease; }
+  .btn-soft:hover{ background:var(--orange-deep); }
+  .btn-soft:active{ transform:scale(.98); }
+  .btn-soft:focus-visible{ outline:2px solid var(--ink); outline-offset:2px; }
+
+  .settings{ margin:0; max-width:330px; text-align:left; font-size:.85rem; display:none; }
+  .fac-toggle-wrap{ margin:14px 0 0; }
+  .fac-toggle{ background:none; border:none; padding:0; font-family:inherit; font-size:.78rem; font-weight:700; color:var(--ink-soft); opacity:.5; cursor:pointer; letter-spacing:.01em; }
+  .fac-toggle:hover{ opacity:.8; }
+  #facpanel{ display:none; margin-bottom:26px; }
+
+  /* when the facilitator opens the panel on a wide screen, place it to the right so all is visible */
+  @media (min-width:820px){
+    #app.fac-open{ display:flex; flex-direction:row; align-items:center; justify-content:center; gap:30px; max-width:980px; }
+    #app.fac-open .screen{ flex:0 1 540px; }
+    #app.fac-open #facpanel{ flex:0 0 330px; margin:0; align-self:center; display:block !important; }
+    #app.fac-open .fac-toggle-wrap{ display:none; }
+  }
+  .settings-body{ background:rgba(22,58,43,.05); border:1px solid rgba(22,58,43,.14); border-radius:14px; padding:20px; display:flex; flex-direction:column; gap:22px; }
+  .fac-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .fac-row input{ width:84px; padding:7px 9px; border:1px solid var(--ink-soft); border-radius:9px; font-family:inherit; font-size:.92rem; text-align:center; background:#FFFDF6; color:var(--ink); }
+  .fac-group{ display:flex; flex-direction:column; gap:7px; }
+  .fac-hint{ font-size:.76rem; color:var(--ink-soft); opacity:.8; margin:0; }
+  .codemsg{ font-size:.78rem; font-weight:700; }
+  .codemsg.err{ color:var(--orange-deep); }
+  .fac-actions{ display:flex; gap:8px; align-items:center; }
+  .divider{ height:1px; background:rgba(22,58,43,.12); margin:8px 0; border:none; }
+  .reset{ align-self:flex-start; background:none; border:1px solid var(--orange); color:var(--orange-deep); border-radius:999px; padding:6px 14px; font-family:inherit; font-weight:700; font-size:.8rem; cursor:pointer; }
+  .reset:hover{ background:rgba(232,130,30,.08); }
+  .resetconfirm{ font-size:.78rem; color:var(--orange-deep); font-weight:700; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="screen">
+    <header>
+      <p class="eyebrow" id="eyebrow">NDT</p>
+      <h1 class="title">Our testing tree</h1>
+      <p class="subtitle" id="subtitle">The tree grows as the team submits their feedback forms. Watch it flourish together.</p>
+    </header>
+
+    <main class="stage" aria-live="polite">
+      <svg id="tree" viewBox="-20 80 640 490" preserveAspectRatio="xMidYMax meet" role="img" aria-label="A growing tree showing the team's collective progress"></svg>
+    </main>
+
+    <p id="status" class="status">&nbsp;</p>
+    <p class="livenote"><span class="livedot" aria-hidden="true"></span>Updating live as submissions come in.</p>
+  </div>
+
+  <p class="fac-toggle-wrap" id="facbtnwrap" style="display:none"><button id="facbtn" class="fac-toggle" type="button">Facilitator controls</button></p>
+
+  <div class="settings" id="facpanel">
+    <div class="settings-body">
+      <div id="lockbox">
+        <div class="fac-row"><span id="codelabel">Enter facilitator password</span>
+          <input id="code" type="password" autocomplete="off" />
+        </div>
+        <div class="fac-actions">
+          <button id="unlock" class="btn-soft" type="button">Unlock</button>
+          <span id="codemsg" class="codemsg"></span>
+        </div>
+        <p id="codehint" class="fac-hint"></p>
+      </div>
+
+      <div id="controls" hidden>
+        <div class="fac-group">
+          <div class="fac-row"><span>Total forms submitted</span>
+            <input id="total" type="number" min="0" max="9999" inputmode="numeric" />
+          </div>
+          <p class="fac-hint">Set this to match your form's response count &mdash; the tree updates for everyone.</p>
+        </div>
+        <div class="fac-actions">
+          <button id="plus" class="btn-soft" type="button">+1 submission</button>
+        </div>
+        <hr class="divider">
+        <div class="fac-row"><span>Forms for a full tree</span>
+          <input id="goal" type="number" min="1" max="999" inputmode="numeric" />
+        </div>
+        <div class="fac-actions">
+          <button id="reset" class="reset" type="button">Reset the tree</button>
+          <span id="resetconfirm" class="resetconfirm" hidden>Tap again to confirm</span>
+        </div>
+        <div class="fac-actions" style="margin-top:2px">
+          <button id="changepass" class="reset" type="button">Change password</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var SHARED_KEY = "garden:state";
+  var PASS_KEY   = "garden:pass";     // hashed facilitator password (shared)
+  var UNLOCK_KEY = "garden:unlocked"; // this device remembered as facilitator
+  var DEFAULT_GOAL = 30;
+
+  async function hashStr(s){
+    try{ if(window.crypto && crypto.subtle){ var buf=await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)); return Array.prototype.map.call(new Uint8Array(buf), function(b){ return ('0'+b.toString(16)).slice(-2); }).join(''); } }catch(e){}
+    var h1=0xdeadbeef, h2=0x41c6ce57;
+    for(var i=0;i<s.length;i++){ var ch=s.charCodeAt(i); h1=Math.imul(h1^ch,2654435761); h2=Math.imul(h2^ch,1597334677); }
+    h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);
+    h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);
+    return (4294967296*(2097151&h2)+(h1>>>0)).toString(16);
+  }
+
+  function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; var t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+  var rnd = mulberry32(20260610);
+  function rr(mn,mx){ return mn+(mx-mn)*rnd(); }
+
+  // ---- build tree geometry ----
+  var BASE_X=300, BASE_Y=500, maxDepth=4;
+  var branches=[], leafSlots=[];
+
+  function grow(x,y,angle,len,w,depth){
+    var x2=x+len*Math.sin(angle), y2=y-len*Math.cos(angle);
+    branches.push({x1:x,y1:y,x2:x2,y2:y2,w:w,depth:depth});
+    var bi = branches.length-1;
+    if(depth===0){
+      leafSlots.push({ x:x2, y:y2, ang:angle, scale:rr(.7,1.05), kind: rnd()<.75?"sage":"gold", bi:bi });
+      var side=rnd()<.5?1:-1;
+      leafSlots.push({ x:x+(x2-x)*rr(.35,.85), y:y+(y2-y)*rr(.35,.85), ang:angle+side*rr(.5,1.15), scale:rr(.6,.95), kind: rnd()<.75?"sage":"gold", bi:bi });
+    } else if(depth===1){
+      var side=rnd()<.5?1:-1;
+      leafSlots.push({ x:x+(x2-x)*rr(.45,.9), y:y+(y2-y)*rr(.45,.9), ang:angle+side*rr(.5,1.1), scale:rr(.6,.88), kind: rnd()<.72?"sage":"gold", bi:bi });
+    }
+    if(depth>0){
+      var bc = depth>=3 ? 2 : 3;
+      var baseSpread = depth>=2 ? rr(.52,.74) : rr(.70,.95);
+      for(var b=0;b<bc;b++){
+        var off=(b-(bc-1)/2);
+        var lean = depth<=1 ? off*rr(.14,.28) : 0;
+        var branchAngle = angle + off*baseSpread + lean + rr(-.13,.13);
+        var branchLen = len * rr(.60,.80);  // wider length variance = more ragged top
+        grow(x2,y2, branchAngle, branchLen, w*0.63, depth-1);
+      }
+    }
+  }
+
+  // trunk: a single straight main stem to a fork point
+  var trunkOff = rr(-6,6), trunkTilt = rr(-.03,.03);
+  var trunkLen = 160;
+  var forkX = BASE_X+trunkOff + trunkLen*Math.sin(trunkTilt);
+  var forkY = BASE_Y - trunkLen*Math.cos(trunkTilt);
+  branches.push({x1:BASE_X+trunkOff, y1:BASE_Y, x2:forkX, y2:forkY, w:20, depth:maxDepth+1});
+
+  // 4–5 primary branches off the trunk at varied heights, spread wide
+  var nMain = 5;
+  var mainDefs = [
+    { t:0.45, ang: rr(-.55,-.35), lenMul: rr(.82,.98) },  // left low
+    { t:0.65, ang: rr( .38, .58), lenMul: rr(.80,.95) },  // right mid
+    { t:0.80, ang: rr(-.48,-.28), lenMul: rr(.75,.90) },  // left mid-high
+    { t:0.92, ang: rr( .28, .50), lenMul: rr(.72,.88) },  // right high
+    { t:1.00, ang: rr(-.15, .15), lenMul: rr(.70,.85) },  // centre top
+  ];
+  mainDefs.forEach(function(def){
+    var px = BASE_X+trunkOff + (forkX-(BASE_X+trunkOff))*def.t;
+    var py = BASE_Y + (forkY-BASE_Y)*def.t;
+    var primaryLen = 110 * def.lenMul;
+    grow(px, py, def.ang + trunkTilt + rr(-.06,.06), primaryLen, 11, maxDepth-1);
+  });
+
+  // thresholds computed below as an even, growth-ordered reveal
+
+  // thresholds: structure builds inner -> outer across most of the journey
+  branches.forEach(function(br){ br.len = Math.hypot(br.x2-br.x1, br.y2-br.y1); });
+
+  // Even, growth-ordered reveal: trunk first, then outward tier by tier,
+  // each branch immediately followed by its own leaves (so leaves never float).
+  var TREE_END = 1.0;   // the whole submission count grows the tree; sky is a finale after
+  var leavesByBranch={};
+  leafSlots.forEach(function(lf){ (leavesByBranch[lf.bi]=leavesByBranch[lf.bi]||[]).push(lf); });
+  var border = branches.map(function(_,i){ return i; }).sort(function(a,b){
+    var ta=maxDepth-branches[a].depth, tb=maxDepth-branches[b].depth; return ta-tb || a-b;
+  });
+  var order=[];
+  border.forEach(function(i){
+    order.push(branches[i]);
+    (leavesByBranch[i]||[]).forEach(function(lf){ order.push(lf); });
+  });
+  var M=order.length;
+  order.forEach(function(it,i){ it.th = (M>1 ? i/(M-1) : 0) * TREE_END; });
+
+  // sky decorations appear only after the tree is established (back half)
+  var decos=[];
+  [["star",120,120,15],["star",480,110,15],["star",300,60,13],
+   ["plus",80,230,9],["plus",520,220,9],["plus",170,70,7],["plus",430,75,7],
+   ["spark",240,95,7],["spark",365,130,7],["spark",95,300,7],["spark",505,300,7],
+   ["spark",60,160,6],["spark",540,165,6],["star",55,90,11],["star",548,85,11]
+  ].forEach(function(d){ decos.push({type:d[0],x:d[1],y:d[2],s:d[3], th:0.84+rr(0,.16)}); });
+
+  // sun rays (also held back)
+  var RAYS=13, rays=[];
+  for(var r=0;r<RAYS;r++){ rays.push({ a:(-Math.PI*0.5)+(r/(RAYS-1)-.5)*Math.PI*0.9, th:0.85 + (r/(RAYS-1))*0.15 }); }
+
+  // ---- svg helpers ----
+  var NS="http://www.w3.org/2000/svg";
+  function el(n,a){ var e=document.createElementNS(NS,n); for(var k in a){ e.setAttribute(k,a[k]); } return e; }
+  function starPts(cx,cy,o,inn,p){ var s=[],st=Math.PI/p; for(var i=0;i<p*2;i++){ var rad=i%2===0?o:inn, an=i*st-Math.PI/2; s.push((cx+rad*Math.cos(an)).toFixed(2)+","+(cy+rad*Math.sin(an)).toFixed(2)); } return s.join(" "); }
+
+  var svg=document.getElementById("tree");
+  var leafEls=[], branchEls=[], decoEls=[], rayEls=[], blossomEls=[];
+  var sunCore, treeG;
+
+  function build(){
+    var defs=el("defs",{});
+    var cp=el("clipPath",{id:"skyclip"});
+    cp.appendChild(el("rect",{x:-100,y:-100,width:800,height:600})); // sky only: y from -100 down to 500
+    defs.appendChild(cp); svg.appendChild(defs);
+
+    // decorations (behind)
+    var gDeco=el("g",{});
+    decos.forEach(function(d){
+      var node;
+      if(d.type==="star"){ node=el("polygon",{points:starPts(d.x,d.y,d.s,d.s*0.42,8), fill:"var(--gold)", stroke:"var(--ink)","stroke-width":2,"stroke-linejoin":"round"}); }
+      else if(d.type==="plus"){ var s=d.s,t=s*0.34; node=el("path",{d:"M"+(d.x-t)+","+(d.y-s)+" h"+(2*t)+" v"+(s-t)+" h"+(s-t)+" v"+(2*t)+" h"+(-(s-t))+" v"+(s-t)+" h"+(-2*t)+" v"+(-(s-t))+" h"+(-(s-t))+" v"+(-2*t)+" h"+(s-t)+" Z", fill:"var(--orange)", stroke:"var(--ink)","stroke-width":1.5,"stroke-linejoin":"round"}); }
+      else { node=el("path",{d:"M"+d.x+","+(d.y-d.s)+" Q"+d.x+","+d.y+" "+(d.x+d.s)+","+d.y+" Q"+d.x+","+d.y+" "+d.x+","+(d.y+d.s)+" Q"+d.x+","+d.y+" "+(d.x-d.s)+","+d.y+" Q"+d.x+","+d.y+" "+d.x+","+(d.y-d.s)+" Z", fill:"var(--gold)"}); }
+      node.setAttribute("class","deco");
+      node.style.setProperty("--ox", d.x+"px"); node.style.setProperty("--oy", d.y+"px");
+      gDeco.appendChild(node); decoEls.push({node:node, th:d.th});
+    });
+    svg.appendChild(gDeco);
+
+    // sun (clipped to the sky so nothing shows below the ground line)
+    var gSun=el("g",{"clip-path":"url(#skyclip)"});
+    var gRays=el("g",{});
+    rays.forEach(function(ray){
+      var inner=58,outer=104,hw=0.05;
+      var x1=BASE_X+inner*Math.cos(ray.a), y1=BASE_Y+inner*Math.sin(ray.a);
+      var xa=BASE_X+outer*Math.cos(ray.a-hw), ya=BASE_Y+outer*Math.sin(ray.a-hw);
+      var xb=BASE_X+outer*Math.cos(ray.a+hw), yb=BASE_Y+outer*Math.sin(ray.a+hw);
+      var ry=el("polygon",{points:[x1.toFixed(1)+","+y1.toFixed(1),xa.toFixed(1)+","+ya.toFixed(1),xb.toFixed(1)+","+yb.toFixed(1)].join(" "), fill:"var(--orange-soft)", stroke:"var(--ink)","stroke-width":1.5,"stroke-linejoin":"round","class":"ray"});
+      ry.style.setProperty("--ox",BASE_X+"px"); ry.style.setProperty("--oy",BASE_Y+"px");
+      gRays.appendChild(ry); rayEls.push({node:ry, th:ray.th});
+    });
+    sunCore=el("circle",{cx:BASE_X,cy:BASE_Y,r:46, fill:"var(--orange)", stroke:"var(--ink)","stroke-width":3,"class":"sun-core"});
+    sunCore.style.setProperty("--ox",BASE_X+"px"); sunCore.style.setProperty("--oy",BASE_Y+"px");
+    gSun.appendChild(gRays); gSun.appendChild(sunCore); svg.appendChild(gSun);
+
+    // ground
+    svg.appendChild(el("path",{d:"M0,500 Q300,486 600,500 L600,560 L0,560 Z", fill:"var(--ink)"}));
+    svg.appendChild(el("path",{d:"M0,500 Q300,486 600,500", fill:"none", stroke:"var(--orange)","stroke-width":4,"stroke-linecap":"round"}));
+
+    // tree (the trunk itself is the sprout at count 0, so 0->1 reads as growth, not a swap)
+    treeG=el("g",{"class":"tree-group"});
+    var canopy=el("g",{"class":"canopy"});
+    branches.sort(function(a,b){ return b.depth-a.depth; });
+    branches.forEach(function(br){
+      // gentle curve: control point bows perpendicular to the branch, random side
+      var mx=(br.x1+br.x2)/2, my=(br.y1+br.y2)/2;
+      var dx=br.x2-br.x1, dy=br.y2-br.y1;
+      var bow = rr(0.06,0.18) * br.len * (rnd()<.5?1:-1);
+      var cx=(mx - dy*bow/br.len).toFixed(1), cy=(my + dx*bow/br.len).toFixed(1);
+      var d="M"+br.x1.toFixed(1)+","+br.y1.toFixed(1)+" Q"+cx+","+cy+" "+br.x2.toFixed(1)+","+br.y2.toFixed(1);
+      var path=el("path",{d:d, stroke:"var(--ink)","stroke-width":Math.max(1.8,br.w).toFixed(1),"stroke-linecap":"round", fill:"none","class":"branch"});
+      path.style.setProperty("--len", (br.len*1.35).toFixed(1)); canopy.appendChild(path); branchEls.push({node:path, th:br.th});
+    });
+    leafSlots.forEach(function(lf){
+      var g=el("g",{transform:"translate("+lf.x.toFixed(1)+","+lf.y.toFixed(1)+") rotate("+(lf.ang*180/Math.PI).toFixed(1)+")"});
+      var pop=el("g",{"class":"leaf-pop"});
+      var L=30*lf.scale, W=12*lf.scale, fill=lf.kind==="gold"?"var(--gold)":"var(--sage)";
+      pop.appendChild(el("path",{d:"M0,0 Q"+W+","+(-L*0.5)+" 0,"+(-L)+" Q"+(-W)+","+(-L*0.5)+" 0,0 Z", fill:fill, stroke:"var(--ink)","stroke-width":1.8,"stroke-linejoin":"round"}));
+      pop.appendChild(el("path",{d:"M0,-1 L0,"+(-L*0.92), stroke:"var(--ink)","stroke-width":1.1, fill:"none","stroke-linecap":"round","opacity":.65}));
+      for(var v=1;v<=3;v++){ var vy=-L*(0.22*v+0.12), vw=W*(0.85-v*0.18);
+        pop.appendChild(el("path",{d:"M0,"+vy.toFixed(1)+" L"+vw.toFixed(1)+","+(vy-5).toFixed(1), stroke:"var(--ink)","stroke-width":.9, fill:"none","stroke-linecap":"round","opacity":.5}));
+        pop.appendChild(el("path",{d:"M0,"+vy.toFixed(1)+" L"+(-vw).toFixed(1)+","+(vy-5).toFixed(1), stroke:"var(--ink)","stroke-width":.9, fill:"none","stroke-linecap":"round","opacity":.5})); }
+      g.appendChild(pop); canopy.appendChild(g); leafEls.push({node:pop, th:lf.th});
+
+      var bg=el("g",{transform:"translate("+lf.x.toFixed(1)+","+lf.y.toFixed(1)+")"});
+      var bl=el("g",{"class":"blossom"});
+      bl.appendChild(el("polygon",{points:starPts(0,0,11*lf.scale,4.6*lf.scale,8), fill:"var(--orange)", stroke:"var(--ink)","stroke-width":1.6,"stroke-linejoin":"round"}));
+      bl.appendChild(el("circle",{cx:0,cy:0,r:3.2*lf.scale, fill:"var(--gold)", stroke:"var(--ink)","stroke-width":1.2}));
+      bg.appendChild(bl); canopy.appendChild(bg); blossomEls.push({node:bl});
+    });
+    treeG.appendChild(canopy); svg.appendChild(treeG);
+  }
+
+  // ---- apply state with smooth staggered reveal ----
+  function applyState(count, goal){
+    var p = Math.max(0, Math.min(1, count/Math.max(1,goal)));
+    var struct = count===0 ? 0 : p;   // trunk (threshold 0) shows even at zero, as the sprout
+
+    // suppress transitions on initial paint so the trunk just appears (no draw-in animation)
+    if(count===0){
+      branchEls.forEach(function(o){ o.node.style.transition="none"; });
+      leafEls.forEach(function(o){ o.node.style.transition="none"; });
+    } else {
+      branchEls.forEach(function(o){ o.node.style.transition=""; });
+      leafEls.forEach(function(o){ o.node.style.transition=""; });
+    }
+
+    // branches
+    var newB=[];
+    branchEls.forEach(function(o){ var show=struct>=o.th; if(show && !o.node.classList.contains("shown")) newB.push(o); });
+    newB.sort(function(a,b){ return a.th-b.th; });
+    branchEls.forEach(function(o){ var show=struct>=o.th; var k=newB.indexOf(o); o.node.style.transitionDelay = k>=0 ? (k*0.05)+"s" : "0s"; o.node.classList.toggle("shown", show); });
+
+    // leaves (gentle cascade)
+    var newL=[];
+    leafEls.forEach(function(o){ var show=count>0 && p>=o.th; if(show && !o.node.classList.contains("shown")) newL.push(o); });
+    newL.sort(function(a,b){ return a.th-b.th; });
+    leafEls.forEach(function(o){ var show=count>0 && p>=o.th; var k=newL.indexOf(o); o.node.style.transitionDelay = k>=0 ? (0.08 + k*0.06)+"s" : "0s"; o.node.classList.toggle("shown", show); });
+
+    // background = a celebratory finale that appears once every submission is in
+    var done = count>=goal;
+    if(sunCore){
+      if(done && !sunCore.classList.contains("shown")) sunCore.style.transitionDelay="0s";
+      if(!done) sunCore.style.transitionDelay="0s";
+      sunCore.setAttribute("r",(40+26*Math.min(p,1)).toFixed(1));
+      sunCore.classList.toggle("shown", done);
+    }
+    rayEls.forEach(function(o,i){
+      if(done && !o.node.classList.contains("shown")) o.node.style.transitionDelay=(0.15+i*0.035)+"s";
+      else if(!done) o.node.style.transitionDelay="0s";
+      o.node.classList.toggle("shown", done);
+    });
+    decoEls.forEach(function(o,i){
+      if(done && !o.node.classList.contains("shown")) o.node.style.transitionDelay=(0.5+i*0.05)+"s";
+      else if(!done) o.node.style.transitionDelay="0s";
+      o.node.classList.toggle("shown", done);
+    });
+
+    // blossoms on overshoot
+    var over=Math.max(0,count-goal), nb=Math.min(over,blossomEls.length);
+    blossomEls.forEach(function(o,i){ o.node.classList.toggle("shown", i>=(blossomEls.length-nb)); });
+
+    // size: small plant -> full tree by TREE_END, then steady while the sky fills in
+    var scale=0.6+0.4*Math.min(p/TREE_END,1);
+    if(treeG){ treeG.style.transform="translate("+BASE_X+"px,"+BASE_Y+"px) scale("+scale.toFixed(3)+") translate("+(-BASE_X)+"px,"+(-BASE_Y)+"px)"; }
+
+    var status=document.getElementById("status");
+    if(count<goal){ status.innerHTML="<b style='color:var(--orange)'>"+count+"</b> of "+goal+" forms."; status.style.color=""; }
+    else { status.innerHTML="<b>"+goal+"</b> of "+goal+" forms &mdash; <b>Complete!</b>"; status.style.color="var(--sage-deep)"; }
+
+    var sub=document.getElementById("subtitle");
+    if(sub){
+      if(count>=goal){ sub.innerHTML="In full leaf!<br>Thank you for your invaluable support."; sub.classList.add("final"); }
+      else { sub.textContent="The tree grows as the team submits their feedback forms. Watch it flourish together."; sub.classList.remove("final"); }
+    }
+  }
+
+  // ---- storage ----
+  var hasStore=!!(window.storage && window.storage.get);
+  var mem={count:0, goal:DEFAULT_GOAL};
+
+  async function loadShared(){
+    if(!hasStore) return {count:mem.count, goal:mem.goal};
+    try{ var res=await window.storage.get(SHARED_KEY, true); if(res&&res.value){ var v=JSON.parse(res.value); return {count:v.count||0, goal:v.goal||DEFAULT_GOAL}; } }catch(e){}
+    return {count:0, goal:DEFAULT_GOAL};
+  }
+  async function saveShared(s){ mem=s; if(!hasStore) return true; try{ await window.storage.set(SHARED_KEY, JSON.stringify(s), true); return true; }catch(e){ return false; } }
+
+  // ---- wiring ----
+  var current={count:0, goal:DEFAULT_GOAL};
+  var totalInput=document.getElementById("total");
+  var goalInput=document.getElementById("goal");
+
+  var pendingSave=null;
+
+  async function refresh(){
+    if(pendingSave) return;   // keep showing the optimistic value until it has saved
+    var s=await loadShared(); current=s;
+    if(document.activeElement!==totalInput) totalInput.value=s.count;
+    if(document.activeElement!==goalInput) goalInput.value=s.goal;
+    applyState(s.count, s.goal);
+  }
+
+  function persist(){
+    var snap={count:current.count, goal:current.goal};
+    pendingSave=snap;
+    saveShared(snap).then(function(){ if(pendingSave===snap) pendingSave=null; },
+                          function(){ if(pendingSave===snap) pendingSave=null; });
+  }
+  function setCount(n){
+    current.count=Math.max(0, Math.min(9999, n|0));
+    totalInput.value=current.count;
+    applyState(current.count, current.goal);  // update the tree immediately
+    persist();                                // save in the background
+  }
+
+  totalInput.addEventListener("change", function(){ setCount(parseInt(totalInput.value,10)||0); });
+  document.getElementById("plus").addEventListener("click", function(){ setCount(current.count+1); });
+  goalInput.addEventListener("change", function(){ current.goal=Math.max(1,Math.min(999,parseInt(goalInput.value,10)||DEFAULT_GOAL)); goalInput.value=current.goal; applyState(current.count,current.goal); persist(); });
+
+  var resetBtn=document.getElementById("reset"), resetConfirm=document.getElementById("resetconfirm"), armed=false, armT=null;
+  resetBtn.addEventListener("click", function(){
+    if(!armed){ armed=true; resetConfirm.hidden=false; armT=setTimeout(function(){armed=false; resetConfirm.hidden=true;},3500); return; }
+    clearTimeout(armT); armed=false; resetConfirm.hidden=true; setCount(0);
+  });
+
+  // facilitator gate — you set the password on first use; only a hash is stored
+  var lockbox=document.getElementById("lockbox"), controls=document.getElementById("controls");
+  var codeInput=document.getElementById("code"), codeMsg=document.getElementById("codemsg");
+  var codeLabel=document.getElementById("codelabel"), codeHint=document.getElementById("codehint");
+  var unlockBtn=document.getElementById("unlock");
+  var passHash=null, mode="enter";
+
+  function msg(t,cls){ codeMsg.textContent=t||""; codeMsg.className="codemsg"+(cls?(" "+cls):""); }
+  function showControls(){ lockbox.hidden=true; controls.hidden=false; }
+  function showLock(setMode, changeMode){
+    mode = changeMode ? "change-verify" : (setMode ? "set" : "enter");
+    controls.hidden=true; lockbox.hidden=false; codeInput.value=""; msg("");
+    if(setMode && !changeMode){ codeLabel.textContent="Create a password"; unlockBtn.textContent="Set password"; codeHint.textContent="Set this before you share the link \u2014 only you should know it."; }
+    else if(changeMode){ codeLabel.textContent="Enter your current password"; unlockBtn.textContent="Verify"; codeHint.textContent=""; }
+    else { codeLabel.textContent="Enter facilitator password"; unlockBtn.textContent="Unlock"; codeHint.textContent=""; }
+  }
+  async function loadPass(){ if(!hasStore) return null; try{ var r=await window.storage.get(PASS_KEY,true); if(r&&r.value) return r.value; }catch(e){} return null; }
+  function rememberDevice(){ if(hasStore){ try{ window.storage.set(UNLOCK_KEY,"1",false); }catch(e){} } }
+
+  async function onUnlock(){
+    var val=(codeInput.value||"").trim();
+    if(!val){ msg("Type a password.","err"); return; }
+    if(mode==="set" || !passHash){
+      passHash=await hashStr(val);
+      if(hasStore){ try{ await window.storage.set(PASS_KEY, passHash, true); }catch(e){} }
+      rememberDevice(); showControls();
+    } else if(mode==="change-verify"){
+      var h=await hashStr(val);
+      if(h===passHash){ mode="set"; codeLabel.textContent="Enter your new password"; unlockBtn.textContent="Set new password"; codeHint.textContent=""; codeInput.value=""; msg("Current password verified."); }
+      else { msg("Not quite \u2014 try again.","err"); }
+    } else {
+      var h=await hashStr(val);
+      if(h===passHash){ rememberDevice(); showControls(); } else { msg("Not quite \u2014 try again.","err"); }
+    }
+  }
+  unlockBtn.addEventListener("click", onUnlock);
+  codeInput.addEventListener("keydown", function(e){ if(e.key==="Enter") onUnlock(); });
+  document.getElementById("changepass").addEventListener("click", function(){ showLock(false, true); });
+
+  // current day heading, refreshed daily (uses each viewer's local date)
+  function updateDay(){
+    var e=document.getElementById("eyebrow"); if(!e) return;
+    try{ e.textContent = new Date().toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long"}); }
+    catch(err){ e.textContent = new Date().toDateString(); }
+  }
+
+  // init
+  build();
+  updateDay();
+  setInterval(updateDay, 60000);
+
+  // facilitator button — reveals the panel (to the right on wide screens, below on mobile)
+  function openFacPanel(){
+    var fp=document.getElementById("facpanel"); if(!fp) return;
+    fp.style.display="block";
+    var ap=document.getElementById("app"); if(ap) ap.classList.add("fac-open");
+    var btn=document.getElementById("facbtn"); if(btn) btn.style.display="none";
+    try{ fp.scrollIntoView({behavior:"smooth",block:"nearest"}); }catch(e){}
+  }
+  var facBtn=document.getElementById("facbtn");
+  if(facBtn) facBtn.addEventListener("click", openFacPanel);
+
+  (async function(){
+    passHash = await loadPass();
+    var deviceOk=false;
+    if(hasStore){ try{ var u=await window.storage.get(UNLOCK_KEY,false); deviceOk=(u&&u.value==="1"); }catch(e){} }
+    var hashMatch = /facilitator|setup/i.test(location.hash||"");
+    var revealFac = hashMatch || deviceOk;
+    if(revealFac){
+      var wrap=document.getElementById("facbtnwrap"); if(wrap) wrap.style.display="";
+      openFacPanel();
+    }
+
+    // keyboard shortcut: press F three times quickly to reveal facilitator panel
+    var fCount=0, fTimer=null;
+    document.addEventListener("keydown", function(e){
+      if(e.key==="f"||e.key==="F"){
+        fCount++;
+        clearTimeout(fTimer);
+        fTimer=setTimeout(function(){ fCount=0; }, 600);
+        if(fCount>=3){
+          fCount=0;
+          var wrap=document.getElementById("facbtnwrap"); if(wrap) wrap.style.display="";
+          openFacPanel();
+        }
+      }
+    });
+    if(passHash && deviceOk){ showControls(); }
+    else if(passHash){ showLock(false); }
+    else { showLock(true); }
+    await refresh();
+    setTimeout(function(){ applyState(current.count,current.goal); }, 80);
+    setInterval(refresh, 7000);
+  })();
+})();
+</script>
+</body>
+</html>
