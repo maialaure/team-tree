@@ -65,6 +65,17 @@
   .status b{ color:inherit; font-weight:600; }
   .livenote{ margin:0 0 2px; font-size:1.275rem; color:#0d2218; font-weight:400; letter-spacing:.02em; }
 
+  @media (max-height: 920px) and (min-width: 521px) {
+    .screen{ padding:12px 18px 12px; }
+    .eyebrow{ font-size:1rem; }
+    .title{ font-size:clamp(1.8rem, 6.6vw, 2.5rem); }
+    .subtitle{ font-size:1.14rem; min-height:5rem; }
+    .subtitle.final{ font-size:1.26rem; }
+    .status{ font-size:1.42rem; }
+    .livenote{ font-size:1rem; }
+    .stage{ height:min(62vh,420px); margin-top:30px; }
+  }
+
   @media (max-width: 520px) {
     .screen{ padding:12px 18px 12px; }
     .eyebrow{ font-size:.98rem; }
