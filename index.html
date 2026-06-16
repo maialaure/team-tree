@@ -341,7 +341,18 @@
   build();
   updateDay();
   setInterval(updateDay, 60000);
-  applyState(COUNT, GOAL);
+  applyState(0, GOAL);
+  if(COUNT > 0){
+    var displayed = 0;
+    var tickMs = Math.min(120, Math.max(50, Math.round(1500 / COUNT)));
+    setTimeout(function(){
+      var iv = setInterval(function(){
+        displayed++;
+        applyState(displayed, GOAL);
+        if(displayed >= COUNT) clearInterval(iv);
+      }, tickMs);
+    }, 300);
+  }
 })();
 </script>
 </body>
