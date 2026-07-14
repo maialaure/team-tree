@@ -342,7 +342,7 @@
     if(treeG){ treeG.style.transform="translate("+BASE_X+"px,"+BASE_Y+"px) scale("+scale.toFixed(3)+") translate("+(-BASE_X)+"px,"+(-BASE_Y)+"px)"; }
 
     var status=document.getElementById("status");
-    if(count<goal){ status.innerHTML="<b style='color:var(--orange)'>"+count+"</b> of "+goal+" forms."; status.style.color=""; }
+    if(count<goal){ status.innerHTML="<b style='color:var(--orange)'>"+count+"</b> of "+goal+" forms"; status.style.color=""; }
     else { status.innerHTML="<b>"+goal+"</b> of "+goal+" forms &mdash; <b>Complete!</b>"; status.style.color="var(--sage-deep)"; }
 
     var sub=document.getElementById("subtitle");
