@@ -94,7 +94,7 @@
     <header>
       <p class="eyebrow" id="eyebrow">NDT</p>
       <h1 class="title">Our testing tree</h1>
-      <p class="subtitle" id="subtitle">Grows with feedback form submissions. Watch it flourish together.</p>
+      <p class="subtitle" id="subtitle">Grows with feedback form submissions. Watch it flourish!</p>
     </header>
 
     <main class="stage" aria-live="polite">
@@ -111,7 +111,7 @@
   "use strict";
 
   // Edit these two numbers, then commit + push.
-  var COUNT = 1;   // total forms submitted so far
+  var COUNT = 4;   // total forms submitted so far
   var GOAL  = 20;  // forms required for a full tree
 
   function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; var t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
@@ -290,7 +290,8 @@
 
   // ---- apply state with smooth staggered reveal ----
   function applyState(count, goal){
-    var p = Math.max(0, Math.min(1, count/Math.max(1,goal)));
+    var linear = Math.max(0, Math.min(1, count/Math.max(1,goal)));
+    var p = linear <= 0.5 ? linear * 1.4 : 0.7 + (linear - 0.5) * 0.6;
     var struct = count===0 ? 0 : p;   // trunk (threshold 0) shows even at zero, as the sprout
 
     // suppress transitions on initial paint so the trunk just appears (no draw-in animation)
@@ -348,7 +349,7 @@
     var sub=document.getElementById("subtitle");
     if(sub){
       if(count>=goal){ sub.innerHTML="In full leaf!<br>Thank you for your invaluable support."; sub.classList.add("final"); }
-      else { sub.textContent="Grows with feedback form submissions. Watch it flourish together."; sub.classList.remove("final"); }
+      else { sub.textContent="Grows with feedback form submissions. Watch it flourish!"; sub.classList.remove("final"); }
     }
   }
 
